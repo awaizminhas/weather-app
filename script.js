@@ -74,15 +74,16 @@ function fetchCurrentWeather(city, units) {
             hideLoadingSpinner();
         });
 }
-
 function fetchForecast(lat, lon, units = 'metric') {
     showLoadingSpinner();
     const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${units}&appid=${weatherApiKey}`;
     fetch(url)
         .then(response => response.json())
         .then(data => {
-            const forecast = data.list.filter(item => item.dt_txt.includes('12:00:00'));
-            forecastData = forecast;
+                const forecast = data.list.filter(item => 
+                item.dt_txt.includes('06:00:00') || item.dt_txt.includes('18:00:00')
+            );
+                forecastData = forecast.slice(0, 10); // First 5 days, 2 entries per day (morning + evening)
             updateCharts(forecast);
             renderForecastTable(forecastData);
             hideLoadingSpinner();
@@ -93,19 +94,23 @@ function fetchForecast(lat, lon, units = 'metric') {
         });
 }
 
+
 function renderForecastTable(data) {
     const tbody = $('#forecastTable tbody');
-    tbody.empty();  
+    tbody.empty(); 
 
     data.forEach(day => {
+        
+        const [date, time] = day.dt_txt.split(' ');
         const row = `<tr>
-            <td>${day.dt_txt.split(' ')[0]}</td>
-            <td>${day.main.temp}</td>
-            <td>${day.weather[0].description}</td>
+            <td>${date} ${time}</td> <!-- Display both date and time -->
+            <td>${day.main.temp}°</td> <!-- Display temperature with ° symbol -->
+            <td>${day.weather[0].description}</td> <!-- Display weather description -->
         </tr>`;
         tbody.append(row);
     });
 }
+
 
 $('#sortAscBtn').click(() => {
     const sortedData = [...forecastData].sort((a, b) => a.main.temp - b.main.temp);
